@@ -20,8 +20,18 @@ cursor.execute('''
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
 ''')
+
 # SQLlite는 commit을 꼭 해줘야한대~
 conn.commit()
+
+
+# + 세션 정보를 이용해 폼 초기화를 위한 초기 세션 정보 저장
+if "user_name" not in st.session_state:
+    st.session_state.user_name = ""
+if "user_password" not in st.session_state:
+    st.session_state.user_password = ""
+if "user_review" not in st.session_state:
+    st.session_state.user_review = ""
 
 # 팀 소개
 def team_intro():
@@ -45,9 +55,9 @@ def new_geustbook():
     
     # 후기 작성 폼
     with st.form(key='review_form'):
-        user_name = st.text_input("이름") # 이름 작성하는 칸 생성
-        user_password = st.text_input("비밀번호") # + 비밀번호 작성 칸 생성
-        user_review = st.text_area("후기 작성") # 후기 작성 칸 생성
+        user_name = st.text_input("이름", value=st.session_state.user_name, key="user_name") # 이름 작성하는 칸 생성
+        user_password = st.text_input("비밀번호", type="password", value=st.session_state.user_password, key="user_password") # + 비밀번호 작성 칸 생성
+        user_review = st.text_area("후기 작성", value=st.session_state.user_review, key="user_review") # 후기 작성 칸 생성
         submit_button = st.form_submit_button("후기 제출") # 후기 제출 버튼 생성
     
     # 후기 제출 버튼 누른 후기 DB에 저장하기
@@ -56,6 +66,11 @@ def new_geustbook():
             st.success("소중한 후기 감사합니다")
             cursor.execute("INSERT INTO boards (board_name, password, comment) VALUES (?, ?, ?)", (user_name, user_password, user_review)) #DB에 저장하기
             conn.commit() # DB 변경 사항 저장
+
+            del st.session_state["user_name"]
+            del st.session_state["user_password"]
+            del st.session_state["user_review"]
+            st.rerun()
         else:
             st.error("이름과 후기를 모두 작성해 주세요.") # 이름이나 후기가 작성되지 않은 경우
 
