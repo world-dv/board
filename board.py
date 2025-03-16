@@ -77,11 +77,21 @@ def new_geustbook():
         print(row) # + 조회 결과 표시 - 데이터 확인
         st.write(f"💛 {name}님: {review}")
         st.write(f"좋아요 수: {likes}") # + 좋아요 표시 기능 추가
+        like_button = st.button("좋아요", key=f"like_{idx}") # + 좋아요 버튼
 
         left_column, right_column = st.columns(2) 
 
         edit_button = left_column.button("편집", key=f"edit_{idx}") # 리뷰 편집 버튼
         delete_button = right_column.button("삭제", key=f"delete_{idx}") # 리뷰 삭제 버튼
+
+        # + 좋아요 버튼 클릭 시 좋아요 + 1
+        if like_button:
+            cursor.execute("SELECT likes FROM boards WHERE board_id = ?", (review_id, ))
+            one_review = cursor.fetchall()
+            total_like = int(one_review[0][0]) + 1 # + 좋아요 증가
+            cursor.execute("UPDATE boards SET likes = ? WHERE board_id = ?", (total_like, review_id))
+            conn.commit()
+            st.rerun()
 
     # 삭제 버튼 클릭 시 리뷰 삭제
     # + -> 여기서 비밀번호 일치 여부 확인 구현하면 됩니당 !!
