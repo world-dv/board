@@ -66,7 +66,7 @@ def new_geustbook():
             st.error("이름과 후기를 모두 작성해 주세요.") # 이름이나 후기가 작성되지 않은 경우
 
     # 제출된 후기 표시 (새로운 후기 먼저 표시)
-    st.write("### 방명록")
+    st.header("방명록")
 
     cursor.execute("SELECT * FROM boards ORDER BY board_id DESC") # DB에서 정보 가져오기
     all_review = cursor.fetchall() # DB 정보들 all_review 변수로 선언
@@ -75,7 +75,7 @@ def new_geustbook():
     for idx, row in enumerate(all_review):
         review_id = row[0]
         name = row[1]  # 이름
-        #password = row[2] # + 비밀번호
+        password = row[2] # + 비밀번호
         review = row[3]  # 리뷰
         likes = row[4] # + 좋아요 수
 
@@ -89,7 +89,7 @@ def new_geustbook():
             like_button = left_column.button("좋아요", key=f"like_{idx}") # + 좋아요 버튼
             delete_button = right_column.button("삭제", key=f"delete_{idx}") # 리뷰 삭제 버튼
 
-            #edit_button = left_column.button("편집", key=f"edit_{idx}") # 리뷰 편집 버튼
+            edit_button = left_column.button("편집", key=f"edit_{idx}") # 리뷰 편집 버튼
 
             # + 좋아요 버튼 클릭 시 좋아요 + 1
             if like_button:
@@ -107,20 +107,20 @@ def new_geustbook():
                 conn.commit()  # 변경사항을 DB에 적용
                 st.write(f"{name}님의 리뷰가 삭제되었습니다.")
                 st.rerun()  # 페이지 새로 고침
-        # 편집 버튼 클릭 시 리뷰 수정
-        #   elif edit_button:
-        #    ### 오류 있음
-        #    edir_password = st.text_input("비밀번호", type="password")
-        #    edir_review = st.text_area("후기 수정")
-        #    save_button = st.button("후기 저장")
-        #    if save_button:
-        #        if (edir_password == password):
-        #            cursor.execute("UPDATE boards SET comment = ? WHERE board_id = ?", (edir_review, review_id, ))
-        #            conn.commit()
+            # 편집 버튼 클릭 시 리뷰 수정
+            elif edit_button:
+                with st.form(key="edit_form"):
+                    edir_password = st.text_input("비밀번호", type="password", key="review_password")
+                    edir_review = st.text_area("후기 수정", key="new_review")
+                    save_button = st.form_submit_button("후기 저장")
+                if save_button:
+                    if (edir_password == password):
+                        cursor.execute("UPDATE boards SET comment = ? WHERE board_id = ?", (edir_review, review_id, ))
+                        conn.commit()
 
-        #            st.success("성공적으로 수정했습니다.")
-        #        else:
-        #            st.error("비밀번호가 일치하지 않습니다.")
+                        st.success("성공적으로 수정했습니다.")
+                    else:
+                        st.error("비밀번호가 일치하지 않습니다.")
 
 # Streamlit 페이지 구조
 def main():
