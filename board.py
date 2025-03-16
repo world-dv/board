@@ -13,6 +13,7 @@ cursor.execute('''
     CREATE TABLE IF NOT EXISTS boards (
         board_id INTEGER PRIMARY KEY AUTOINCREMENT,
         board_name VARCHAR(255) NOT NULL,
+        password VARCHAR(255) NOT NULL,
         comment TEXT NOT NULL,
         likes INTEGER NOT NULL DEFAULT 0,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -45,14 +46,15 @@ def new_geustbook():
     # 후기 작성 폼
     with st.form(key='review_form'):
         user_name = st.text_input("이름") # 이름 작성하는 칸 생성
+        user_password = st.text_input("비밀번호") # + 비밀번호 작성 칸 생성
         user_review = st.text_area("후기 작성") # 후기 작성 칸 생성
         submit_button = st.form_submit_button("후기 제출") # 후기 제출 버튼 생성
     
     # 후기 제출 버튼 누른 후기 DB에 저장하기
     if submit_button:
-        if user_name and user_review:
+        if user_name and user_password and user_review:
             st.success("소중한 후기 감사합니다")
-            cursor.execute("INSERT INTO boards (board_name, comment) VALUES (?, ?)", (user_name, user_review)) #DB에 저장하기
+            cursor.execute("INSERT INTO boards (board_name, password, comment) VALUES (?, ?, ?)", (user_name, user_password, user_review)) #DB에 저장하기
             conn.commit() # DB 변경 사항 저장
         else:
             st.error("이름과 후기를 모두 작성해 주세요.") # 이름이나 후기가 작성되지 않은 경우
@@ -68,7 +70,9 @@ def new_geustbook():
         review_id = row[0]
         name = row[1]  # 첫 번째 열은 '이름'
         review = row[2]  # 두 번째 열은 '리뷰'
-        likes = row[3] # + 좋아요 수
+        
+        password = row[3] # + 비밀번호
+        likes = row[4] # + 좋아요 수
 
         print(row) # + 조회 결과 표시 - 데이터 확인
         st.write(f"💛 {name}님: {review}")
@@ -80,6 +84,7 @@ def new_geustbook():
         delete_button = right_column.button("삭제", key=f"delete_{idx}") # 리뷰 삭제 버튼
 
     # 삭제 버튼 클릭 시 리뷰 삭제
+    # + -> 여기서 비밀번호 일치 여부 확인 구현하면 됩니당 !!
         if delete_button:
             cursor.execute("DELETE FROM boards WHERE board_id = ?", (review_id, ))
             conn.commit()  # 변경사항을 DB에 적용
